@@ -1,0 +1,295 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>MY JOB — Plataforma</title>
+  <meta name="description" content="Plataforma MY JOB — contas, posts (com foto), chats privados, painel admin funcional." />
+  <style>
+    :root{--bg:#06121a;--card:#0b1720;--accent:#2dd4bf;--accent2:#60a5fa;--muted:#9ca3af;--glass:rgba(255,255,255,0.02);--radius:12px;font-family:Inter,system-ui,Arial}
+    *{box-sizing:border-box}
+    body{margin:0;min-height:100vh;background:linear-gradient(180deg,#04101a,#06121a);color:#e6eef6}
+    header{display:flex;justify-content:space-between;align-items:center;padding:14px 22px;border-bottom:1px solid rgba(255,255,255,0.02)}
+    .brand{display:flex;gap:12px;align-items:center}
+    .logo{width:52px;height:52px;border-radius:12px;background:linear-gradient(135deg,var(--accent),var(--accent2));display:grid;place-items:center;font-weight:800;color:#012}
+    nav{display:flex;gap:10px}
+    nav button{background:transparent;border:0;color:var(--muted);padding:8px 12px;border-radius:10px;cursor:pointer}
+    nav button.active{background:rgba(255,255,255,0.03);color:var(--accent)}
+    .container{max-width:1200px;margin:18px auto;padding:16px}
+    .layout{display:grid;grid-template-columns:1fr 340px;gap:18px}
+    .card{background:linear-gradient(180deg,var(--card), rgba(255,255,255,0.02));padding:16px;border-radius:var(--radius);border:1px solid rgba(255,255,255,0.02)}
+    h1,h2{margin:0 0 8px 0}
+    .small{font-size:13px;color:var(--muted)}
+    /* feed */
+    .compose{display:grid;grid-template-columns:1fr 160px;gap:12px}
+    textarea{width:100%;min-height:88px;padding:12px;border-radius:10px;border:1px solid rgba(255,255,255,0.04);background:transparent;color:inherit}
+    input[type=file]{display:block}
+    .btn{background:linear-gradient(90deg,var(--accent),var(--accent2));color:#012;border:0;padding:10px 14px;border-radius:12px;cursor:pointer;font-weight:700}
+    .ghost{background:transparent;border:1px solid rgba(255,255,255,0.04);padding:8px 10px;border-radius:10px;color:var(--muted);cursor:pointer}
+    .posts{display:flex;flex-direction:column;gap:12px;margin-top:12px}
+    .post{display:flex;gap:12px;align-items:flex-start;background:rgba(255,255,255,0.02);padding:12px;border-radius:10px;border:1px solid rgba(255,255,255,0.02)}
+    .post img{width:120px;height:84px;object-fit:cover;border-radius:8px}
+    .post .meta{display:flex;justify-content:space-between;align-items:center;width:100%}
+    .post .content{color:var(--muted);white-space:pre-wrap;word-break:break-word}
+    .post-actions{display:flex;gap:8px;margin-top:8px}
+    /* chats */
+    .tabs{display:flex;gap:8px;margin-bottom:12px}
+    .chats-list{display:flex;flex-direction:column;gap:8px}
+    .chat-row{display:flex;justify-content:space-between;align-items:center;padding:8px;border-radius:8px;border:1px solid rgba(255,255,255,0.02);cursor:pointer}
+    .chat-window{display:flex;flex-direction:column;height:360px}
+    .messages{flex:1;overflow:auto;padding:12px;background:var(--glass);border-radius:10px}
+    .msg{padding:8px 12px;border-radius:12px;margin-bottom:8px;max-width:80%}
+    .me{background:linear-gradient(90deg,#0ea5a7 0%, #7dd3fc 100%);color:#022;align-self:flex-end}
+    .other{background:rgba(255,255,255,0.03);color:var(--muted);align-self:flex-start;border:1px solid rgba(255,255,255,0.02)}
+    .chat-input{display:flex;gap:8px;margin-top:8px}
+    .chat-input input{flex:1;padding:10px;border-radius:999px}
+    /* admin */
+    #adminPanel{display:none}
+    .admin-actions{display:flex;gap:8px;margin-top:8px}
+    pre{background:rgba(255,255,255,0.02);padding:12px;border-radius:8px;overflow:auto}
+    @media (max-width:980px){.layout{grid-template-columns:1fr}}
+  </style>
+</head>
+<body>
+  <header>
+    <div class="brand">
+      <div class="logo">MJ</div>
+      <div>
+        <div style="font-weight:800">MY JOB</div>
+        <div class="small">Plataforma — interface pronta para integrar ao backend</div>
+      </div>
+    </div>
+    <nav id="mainNav">
+      <button class="active" data-tab="home">Início</button>
+      <button data-tab="chats">Chats</button>
+      <button data-tab="profile">Minha Conta</button>
+      <button data-tab="admin" id="navAdminBtn" style="display:none">Admin</button>
+    </nav>
+    <div style="display:flex;gap:8px;align-items:center">
+      <div id="userBadge" class="small">(não conectado)</div>
+      <button class="ghost" id="btnLogout" style="display:none">Sair</button>
+    </div>
+  </header>
+  <main class="container">
+    <div class="layout">
+      <!-- MAIN COLUMN -->
+      <section class="card" id="homeTab">
+        <h1>Bem-vindo ao MY JOB</h1>
+        <div class="small">Encontre serviços, converse com prestadores e feche acordos.</div>
+        <div style="margin-top:12px;display:flex;gap:12px;align-items:center">
+          <div style="flex:1">
+            <input id="search" placeholder="Buscar serviços, usuários..." style="width:100%;padding:10px;border-radius:10px;border:1px solid rgba(255,255,255,0.04);background:transparent;color:inherit">
+          </div>
+          <div style="width:220px;text-align:right"><button id="btnOpenLogin" class="btn">Entrar / Criar conta</button></div>
+        </div>
+        <hr style="opacity:0.06;margin:14px 0" />
+        <div class="card" style="background:transparent;padding:12px;box-shadow:none;border:0">
+          <h2>Criar anúncio</h2>
+          <div class="compose">
+            <div>
+              <textarea id="postText" placeholder="Descreva o serviço... (máx 500 caracteres)"></textarea>
+              <div style="margin-top:8px;display:flex;gap:8px;align-items:center">
+                <input type="file" id="postImage" accept="image/*" />
+                <label class="small">(opcional) imagem</label>
+              </div>
+            </div>
+            <div style="display:flex;flex-direction:column;gap:8px">
+              <button class="btn" id="btnPublish">Publicar</button>
+              <button class="ghost" id="btnPublishPremium">Publicar Premium (R$9,90)</button>
+              <button class="ghost" id="btnMyPosts">Meus anúncios</button>
+            </div>
+          </div>
+        </div>
+        <div id="feed" class="posts"></div>
+      </section>
+      <!-- SIDE BAR -->
+      <aside>
+        <div class="card">
+          <h2>Atalhos</h2>
+          <div style="display:flex;flex-direction:column;gap:8px;margin-top:8px">
+            <button class="ghost" id="btnAllChats">Ver todos os chats</button>
+            <button class="ghost" id="btnMyProfile">Meu Perfil</button>
+            <button class="ghost" id="btnExport">Exportar dados (JSON)</button>
+          </div>
+        </div>
+        <div class="card" style="margin-top:12px">
+          <h3>Usuários</h3>
+          <div id="usersPreview" class="small" style="margin-top:8px">Carregando...</div>
+        </div>
+        <div class="card" style="margin-top:12px" id="adminPanel">
+          <h3>Painel Admin</h3>
+          <div class="small">Apenas para administradores</div>
+          <div class="admin-actions">
+            <button class="ghost" id="adminViewUsers">Usuários</button>
+            <button class="ghost" id="adminViewPosts">Posts</button>
+            <button class="ghost" id="adminViewChats">Chats</button>
+          </div>
+          <div id="adminContent" style="margin-top:10px;color:var(--muted);max-height:260px;overflow:auto"></div>
+        </div>
+      </aside>
+    </div>
+    <!-- CHATS TAB -->
+    <div id="chatsTab" style="display:none;margin-top:18px">
+      <div class="card">
+        <h2>Chats</h2>
+        <div class="tabs">
+          <div style="flex:1">
+            <input id="chatFilter" placeholder="Filtrar usuários..." style="width:100%;padding:8px;border-radius:8px;border:1px solid rgba(255,255,255,0.04);background:transparent;color:inherit">
+          </div>
+        </div>
+        <div style="display:flex;gap:12px">
+          <div style="width:320px">
+            <div id="chatsList" class="chats-list"></div>
+          </div>
+          <div style="flex:1">
+            <div id="chatPanel" class="card chat-window" style="display:none">
+              <div id="chatHeader" class="small">Chat com <strong id="chatWithName"></strong></div>
+              <div id="chatMessages" class="messages"></div>
+              <div class="chat-input">
+                <input id="chatMessageInput" placeholder="Escreva sua mensagem..." />
+                <button class="btn" id="chatSendBtn">Enviar</button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <!-- PROFILE / LOGIN MODAL area (simple panels) -->
+    <div id="profileTab" style="display:none;margin-top:18px">
+      <div class="card">
+        <h2>Minha Conta</h2>
+        <div id="profileContent" class="small" style="margin-top:8px">(sem sessão)</div>
+      </div>
+    </div>
+  </main>
+  <script>
+    // STORAGE KEYS
+    const K = {USERS:'mj_users_v3', POSTS:'mj_posts_v3', CHATS:'mj_chats_v3', SESSION:'mj_session_v3'};
+    // helpers
+    const read = k => JSON.parse(localStorage.getItem(k) || '[]');
+    const write = (k,v) => localStorage.setItem(k, JSON.stringify(v));
+    const getSession = () => JSON.parse(localStorage.getItem(K.SESSION) || 'null');
+    const setSession = u => localStorage.setItem(K.SESSION, JSON.stringify(u));
+    const clearSession = () => { localStorage.removeItem(K.SESSION) }
+    const escape = s => String(s||'').replaceAll('&','&amp;').replaceAll('<','&lt;').replaceAll('>','&gt;');
+    // ensure admin
+    (function seed(){
+      const users = read(K.USERS);
+      if(!users.find(u=>u.username==='eM1000')){
+        users.push({username:'eM1000',email:'ceo@myjob.com',password:'#####',name:'CEO MYJOB',role:'ADMIN',created:Date.now()});
+        write(K.USERS, users);
+      }
+      if(!Array.isArray(read(K.POSTS))) write(K.POSTS, []);
+      if(!Array.isArray(read(K.CHATS))) write(K.CHATS, []);
+    })();
+    // NAV handling
+    const navBtns = document.querySelectorAll('nav button');
+    navBtns.forEach(b=>b.addEventListener('click', ()=>{ navBtns.forEach(x=>x.classList.remove('active')); b.classList.add('active'); showTab(b.dataset.tab); }));
+    function showTab(t){ document.getElementById('homeTab').style.display = t==='home' ? 'block' : 'none'; document.getElementById('chatsTab').style.display = t==='chats' ? 'block' : 'none'; document.getElementById('profileTab').style.display = t==='profile' ? 'block' : 'none'; document.getElementById('adminPanel').style.display = t==='admin' ? 'block' : 'none'; }
+    // UI elements
+    const btnOpenLogin = document.getElementById('btnOpenLogin');
+    const userBadge = document.getElementById('userBadge');
+    const btnLogout = document.getElementById('btnLogout');
+    const navAdminBtn = document.getElementById('navAdminBtn');
+    btnOpenLogin.addEventListener('click', openAuthFlow);
+    btnLogout.addEventListener('click', ()=>{ clearSession(); location.reload(); });
+    // SIMPLE AUTH FLOW (modal-lite usando prompt para facilidade de uso)
+    function openAuthFlow(){
+      const action = prompt('Digite: login ou register'); if(!action) return;
+      if(action.toLowerCase()==='login'){
+        const ident = prompt('Usuário ou email:'); const pw = prompt('Senha:'); if(!ident||!pw) return alert('cancelado');
+        const users = read(K.USERS); const user = users.find(u=>u.username===ident || u.email===ident);
+        if(!user) return alert('Usuário não encontrado'); if(user.password!==pw) return alert('Senha incorreta');
+        setSession({username:user.username,role:user.role,name:user.name}); initAfterLogin();
+      } else if(action.toLowerCase()==='register'){
+        const username = prompt('Escolha um usuário (sem espaços):'); if(!username) return;
+        const email = prompt('Email:'); const pw = prompt('Senha:'); if(!email||!pw) return;
+        const users = read(K.USERS); if(users.find(u=>u.username===username)) return alert('Usuário já existe');
+        users.push({username,email,password:pw,name:username,role:'USER',created:Date.now()}); write(K.USERS,users); setSession({username,role:'USER',name:username}); initAfterLogin();
+      }
+    }
+    // After login UI update
+    function initAfterLogin(){ const s=getSession(); if(!s) return; userBadge.textContent = s.username + (s.role==='ADMIN'?' (Admin)':''); btnLogout.style.display='inline-block'; document.getElementById('btnOpenLogin').textContent='Conta'; if(s.role==='ADMIN'){ navAdminBtn.style.display='inline-block'; document.getElementById('adminPanel').style.display='block'; }
+      renderFeed(); renderUsersPreview(); populateChatsList(); }
+    // Publishing posts with optional image file -> dataURL stored
+    document.getElementById('btnPublish').addEventListener('click', async ()=>{
+      const s = getSession(); if(!s) return alert('Faça login para publicar');
+      const text = document.getElementById('postText').value.trim(); if(!text) return alert('Digite a descrição');
+      const file = document.getElementById('postImage').files[0]; let img = null; if(file){ img = await toDataURL(file); }
+      const posts = read(K.POSTS); posts.unshift({id:Date.now(),author:s.username,text,created:Date.now(),premium:false,image:img}); write(K.POSTS,posts); document.getElementById('postText').value=''; document.getElementById('postImage').value=''; renderFeed();
+    });
+    document.getElementById('btnPublishPremium').addEventListener('click', async ()=>{ const s=getSession(); if(!s) return alert('login'); const text=document.getElementById('postText').value.trim(); if(!text) return alert('texto'); const file=document.getElementById('postImage').files[0]; let img=null; if(file) img=await toDataURL(file); const posts = read(K.POSTS); posts.unshift({id:Date.now(),author:s.username,text,created:Date.now(),premium:true,image:img}); write(K.POSTS,posts); document.getElementById('postText').value=''; document.getElementById('postImage').value=''; renderFeed(); alert('Publicação premium criada (integração de pagamentos necessária para produção).'); });
+    // convert file to dataURL
+    function toDataURL(file){ return new Promise((res,rej)=>{ const r=new FileReader(); r.onload = ()=>res(r.result); r.onerror=rej; r.readAsDataURL(file); }); }
+    // render feed
+    function renderFeed(){ const feed = document.getElementById('feed'); feed.innerHTML=''; let posts = read(K.POSTS) || [];
+      // premium first
+      posts = posts.slice().sort((a,b)=> (b.premium?1:0) - (a.premium?1:0) || b.created - a.created);
+      if(!posts.length) { feed.innerHTML = '<div class="small">Nenhum anúncio ainda.</div>'; return; }
+      posts.forEach(p=>{
+        const el = document.createElement('div'); el.className='post';
+        const imgHtml = p.image ? `<img src="${p.image}" alt="image"/>` : '';
+        el.innerHTML = `${imgHtml}<div style="flex:1"><div class="meta"><strong>${escape(p.author)}</strong><div class="small">${new Date(p.created).toLocaleString()}</div></div><div class="content">${escape(p.text)}</div><div class="post-actions"><button class="ghost" data-id="${p.id}" data-act="message">Enviar mensagem</button><button class="ghost" data-id="${p.id}" data-act="deal">Fechar acordo</button>${p.premium?'<span style="margin-left:auto;padding:6px 10px;border-radius:8px;background:linear-gradient(90deg,#f6e05e,#f59e0b);color:#012;font-weight:700">PRÊMIUM</span>':''}</div></div>`;
+        feed.appendChild(el);
+      });
+    }
+    // post actions: message (open chat) and deal
+    document.getElementById('feed').addEventListener('click',(ev)=>{
+      const b = ev.target.closest('button'); if(!b) return; const act=b.dataset.act; const id=b.dataset.id; const posts = read(K.POSTS); const p = posts.find(x=>String(x.id)===String(id)); const s = getSession(); if(!s) return alert('Faça login para interagir');
+      if(act==='message'){
+        if(p.author===s.username) return alert('Você é o autor deste anúncio'); openChatPanelWith(p.author, p.id);
+      }
+      if(act==='deal'){
+        if(p.author===s.username) return alert('Você é o autor'); const ok = confirm('Confirmar fechamento de acordo com ' + p.author + '?'); if(ok){ p.sold=true; p.buyer=s.username; write(K.POSTS, posts); renderFeed(); alert('Acordo registrado. (Integração de pagamentos necessária em produção)'); }
+      }
+    });
+    // CHATS
+    function getChats(){ return read(K.CHATS) || []; }
+    function saveChats(c){ write(K.CHATS, c); }
+    function chatKey(a,b){ return [a,b].sort().join('::'); }
+    function populateChatsList(){ const list = document.getElementById('chatsList'); list.innerHTML=''; const s=getSession(); if(!s) { list.innerHTML = '<div class="small">Faça login para ver seus chats</div>'; return; }
+      const chats = getChats(); // find threads where user participates
+      const myKeyPrefix = s.username; const myThreads = chats.filter(t=> t.users && t.users.includes(s.username));
+      // If no threads, show empty
+      if(!myThreads.length) { list.innerHTML = '<div class="small">Nenhuma conversa.</div>'; return; }
+      myThreads.forEach(t=>{
+        const other = t.users.find(u=>u!==s.username);
+        const last = t.messages[t.messages.length-1]; const preview = last? last.text.slice(0,60) : '(sem mensagens)';
+        const row = document.createElement('div'); row.className='chat-row'; row.innerHTML = `<div><strong>${escape(other)}</strong><div class='small'>${escape(preview)}</div></div><div><button class='ghost' data-key='${t.key}' data-other='${other}'>Abrir</button></div>`;
+        list.appendChild(row);
+      });
+    }
+    document.getElementById('chatsList').addEventListener('click', (ev)=>{ const b = ev.target.closest('button'); if(!b) return; const key=b.dataset.key; const other=b.dataset.other; openChatWindow(key, other); });
+    // Chat UI
+    function openChatWindow(key, other){ document.getElementById('chatPanel').style.display='block'; document.getElementById('chatWithName').textContent = other; const msgsEl = document.getElementById('chatMessages'); msgsEl.innerHTML=''; const chats = getChats(); const thread = chats.find(t=>t.key===key); if(!thread) return; thread.messages.forEach(m=>{ const d=document.createElement('div'); d.className='msg ' + (m.from===getSession().username? 'me':'other'); d.innerHTML = `<small class='small'>${m.from} • ${new Date(m.time).toLocaleString()}</small><div>${escape(m.text)}</div>`; msgsEl.appendChild(d); }); msgsEl.scrollTop = msgsEl.scrollHeight; document.getElementById('chatSendBtn').onclick = ()=>{ sendChatMessage(key, other); } }
+    function sendChatMessage(key, other){ const input = document.getElementById('chatMessageInput'); const txt = input.value.trim(); if(!txt) return; const s=getSession(); if(!s) return alert('login'); let chats = getChats(); let thread = chats.find(t=>t.key===key); if(!thread){ thread = {key, users:key.split('::'), messages:[]}; chats.push(thread); }
+      thread.messages.push({from:s.username,text:txt,time:Date.now()}); saveChats(chats); input.value=''; openChatWindow(key, other); populateChatsList(); }
+    // Open chat panel from post author
+    function openChatPanelWith(author, postId){ const s=getSession(); const key = chatKey(s.username, author); // ensure thread exists
+      let chats = getChats(); let thread = chats.find(t=>t.key===key); if(!thread){ thread = {key, users:key.split('::'), messages:[]}; chats.push(thread); saveChats(chats); }
+      // prefill a message referencing the post
+      const pre = `Olá ${author}, tenho interesse no seu anúncio (${postId}). Você ainda tem disponibilidade?`;
+      // open Chats tab and show thread
+      document.querySelector('nav button[data-tab="chats"]').click(); populateChatsList(); openChatWindow(key, author); document.getElementById('chatMessageInput').value = pre; }
+    // Send message from chatPanel send button
+    document.getElementById('chatSendBtn').addEventListener('click', ()=>{ const other = document.getElementById('chatWithName').textContent; const key = chatKey(getSession().username, other); sendChatMessage(key, other); });
+    // Admin: view users, posts, chats and actions
+    document.getElementById('adminViewUsers').addEventListener('click', ()=>{ const users = read(K.USERS); document.getElementById('adminContent').innerHTML = '<pre>'+escape(JSON.stringify(users,null,2))+'</pre>'; });
+    document.getElementById('adminViewPosts').addEventListener('click', ()=>{ const posts = read(K.POSTS); document.getElementById('adminContent').innerHTML = '<pre>'+escape(JSON.stringify(posts,null,2))+'</pre>'; });
+    document.getElementById('adminViewChats').addEventListener('click', ()=>{ const chats = read(K.CHATS); document.getElementById('adminContent').innerHTML = '<pre>'+escape(JSON.stringify(chats,null,2))+'</pre>'; });
+    // Export data JSON
+    document.getElementById('btnExport').addEventListener('click', ()=>{
+      const data = {users:read(K.USERS),posts:read(K.POSTS),chats:read(K.CHATS)};
+      const blob = new Blob([JSON.stringify(data,null,2)],{type:'application/json'});
+      const url = URL.createObjectURL(blob); const a=document.createElement('a'); a.href=url; a.download='myjob_data_export.json'; a.click(); URL.revokeObjectURL(url);
+    });
+    // Users preview
+    function renderUsersPreview(){ const users = read(K.USERS); document.getElementById('usersPreview').textContent = users.slice(0,8).map(u=>u.username + (u.role?' ('+u.role+')':'' )).join(', '); }
+    // initial render
+    function renderInitial(){ renderFeed(); renderUsersPreview(); populateChatsList(); const s=getSession(); if(s) initAfterLogin(); }
+    renderInitial();
+    // small helpers para ações de autenticação em outros lugares
+    function initAfterLogin(){ initAfterLogin; }
+  </script>
+</body>
+</html>
